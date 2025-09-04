@@ -346,6 +346,14 @@ class ApiClient {
     return this.request(`/ai/summaries/${fileId}`)
   }
 
+  // Translation endpoint
+  async translateText(text, targetLanguage = 'en') {
+    return this.request('/ai/translate', {
+      method: 'POST',
+      body: JSON.stringify({ text, targetLanguage }),
+    })
+  }
+
   // Batch processing endpoints
   async createBatchOperation(name, operations) {
     return this.request('/batch', {

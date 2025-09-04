@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../lib/api'
 import { formatFileSize, getFileIcon, downloadBlob } from '../lib/utils'
+import { useAuth } from '../contexts/AuthContext'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input'
@@ -28,6 +29,7 @@ import FileUpload from '../components/FileUpload'
 import toast from 'react-hot-toast'
 
 const Tools = () => {
+  const { user, session } = useAuth()
   const [files, setFiles] = useState([])
   const [selectedFiles, setSelectedFiles] = useState([])
   const [loading, setLoading] = useState(false)
@@ -174,20 +176,39 @@ const Tools = () => {
   const handleOCR = async (fileId) => {
     setLoading(true)
     try {
-      const response = await api.post('/ai/ocr', {
-        fileId,
+      // Check if user is authenticated
+      if (!user || !session) {
+        toast.error('Please sign in to use OCR features')
+        return
+      }
+
+      toast('Starting OCR processing...', {
+        icon: '🔍',
+        duration: 2000
+      })
+      
+      // Perform real OCR
+      const response = await api.performOCR(fileId, {
         language: 'eng',
         enhanceImage: true
       })
-      
+
       setOcrResults(prev => ({
         ...prev,
-        [fileId]: response.result
+        [fileId]: {
+          text: response.result.text,
+          confidence: response.result.confidence,
+          pageCount: response.result.pageCount,
+          language: response.result.language,
+          pages: response.result.pages,
+          isLimited: false // Real OCR, not limited
+        }
       }))
       
-      toast.success('OCR completed successfully!')
+      toast.success(`OCR completed! Extracted text from ${response.result.pageCount} page(s) with ${Math.round(response.result.confidence * 100)}% confidence.`)
       loadFiles() // Refresh to show updated file status
     } catch (error) {
+      console.error('OCR Error:', error)
       toast.error('OCR failed: ' + error.message)
     } finally {
       setLoading(false)
@@ -195,32 +216,43 @@ const Tools = () => {
   }
 
   const handleStartChat = async (fileId) => {
+    setLoading(true)
     try {
-      // First ensure the file has embeddings
-      await api.post('/ai/create-embeddings', { fileId })
-      
-      // Create or get chat session
-      const response = await api.post('/ai/chat-pdf', {
-        fileId,
-        message: 'Hello! I\'d like to chat about this document.'
-      })
+      // Check if user is authenticated
+      if (!user || !session) {
+        toast.error('Please sign in to use AI chat features')
+        return
+      }
+
+      // Check if file has OCR text first
+      const file = files.find(f => f.id === fileId)
+      if (!file?.has_ocr && !file?.extracted_text) {
+        toast.error('Please run OCR on this file first to enable chat')
+        return
+      }
+
+      // Create a new chat session
+      const sessionId = `session-${fileId}-${Date.now()}`
       
       setChatSessions(prev => ({
         ...prev,
-        [fileId]: response.sessionId
+        [fileId]: sessionId
       }))
       
       setChatMessages(prev => ({
         ...prev,
-        [response.sessionId]: [{
+        [sessionId]: [{
           role: 'assistant',
-          content: 'Hello! I\'m ready to help you with questions about this document. What would you like to know?'
+          content: `Hello! I'm ready to help you with questions about "${file.filename}". I can analyze the document content and provide insights. What would you like to know?`
         }]
       }))
       
-      toast.success('Chat session started!')
+      toast.success('AI chat started! Ask me anything about this document.')
     } catch (error) {
+      console.error('Chat Error:', error)
       toast.error('Failed to start chat: ' + error.message)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -230,25 +262,34 @@ const Tools = () => {
     const message = currentMessage
     setCurrentMessage('')
     
-    // Add user message to chat
+    // Add user message to chat immediately
     setChatMessages(prev => ({
       ...prev,
       [sessionId]: [...(prev[sessionId] || []), { role: 'user', content: message }]
     }))
     
     try {
-      const response = await api.post('/ai/chat-pdf', {
-        fileId,
-        message,
-        sessionId
-      })
+      // Send message to AI API
+      const response = await api.chatWithPDF(fileId, message, sessionId)
       
       // Add AI response to chat
       setChatMessages(prev => ({
         ...prev,
         [sessionId]: [...prev[sessionId], { role: 'assistant', content: response.response }]
       }))
+      
     } catch (error) {
+      console.error('Chat API Error:', error)
+      
+      // Add error message to chat
+      setChatMessages(prev => ({
+        ...prev,
+        [sessionId]: [...prev[sessionId], { 
+          role: 'assistant', 
+          content: 'Sorry, I encountered an error processing your message. Please try again.' 
+        }]
+      }))
+      
       toast.error('Failed to send message: ' + error.message)
     }
   }
@@ -262,45 +303,54 @@ const Tools = () => {
   const imageFiles = files.filter(f => f.type.startsWith('image/'))
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">PDF Tools</h1>
-          <p className="text-muted-foreground">
+    <div className="container mx-auto py-4 sm:py-8 px-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8">
+        <div className="mb-4 sm:mb-0">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2 gradient-text">PDF Tools</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             Merge, split, compress, and convert your PDF files
           </p>
         </div>
-        <Button onClick={() => setShowUpload(true)} className="mt-4 md:mt-0">
+        <Button 
+          onClick={() => setShowUpload(true)} 
+          className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
+        >
           <Upload className="mr-2 h-4 w-4" />
           Upload Files
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="merge">
-            <GitMerge className="mr-2 h-4 w-4" />
-            Merge
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 gap-1 sm:gap-0 h-auto sm:h-10 p-1">
+          <TabsTrigger value="merge" className="flex-col sm:flex-row h-12 sm:h-auto text-xs sm:text-sm">
+            <GitMerge className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span className="hidden sm:inline">Merge</span>
+            <span className="sm:hidden">Merge</span>
           </TabsTrigger>
-          <TabsTrigger value="split">
-            <Scissors className="mr-2 h-4 w-4" />
-            Split
+          <TabsTrigger value="split" className="flex-col sm:flex-row h-12 sm:h-auto text-xs sm:text-sm">
+            <Scissors className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span className="hidden sm:inline">Split</span>
+            <span className="sm:hidden">Split</span>
           </TabsTrigger>
-          <TabsTrigger value="compress">
-            <Archive className="mr-2 h-4 w-4" />
-            Compress
+          <TabsTrigger value="compress" className="flex-col sm:flex-row h-12 sm:h-auto text-xs sm:text-sm">
+            <Archive className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span className="hidden sm:inline">Compress</span>
+            <span className="sm:hidden">Compress</span>
           </TabsTrigger>
-          <TabsTrigger value="convert">
-            <Image className="mr-2 h-4 w-4" />
-            Convert
+          <TabsTrigger value="convert" className="flex-col sm:flex-row h-12 sm:h-auto text-xs sm:text-sm">
+            <Image className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span className="hidden sm:inline">Convert</span>
+            <span className="sm:hidden">Convert</span>
           </TabsTrigger>
-          <TabsTrigger value="ocr">
-            <Eye className="mr-2 h-4 w-4" />
-            OCR
+          <TabsTrigger value="ocr" className="flex-col sm:flex-row h-12 sm:h-auto text-xs sm:text-sm">
+            <Eye className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span className="hidden sm:inline">OCR</span>
+            <span className="sm:hidden">OCR</span>
           </TabsTrigger>
-          <TabsTrigger value="ai-chat">
-            <MessageSquare className="mr-2 h-4 w-4" />
-            AI Chat
+          <TabsTrigger value="ai-chat" className="flex-col sm:flex-row h-12 sm:h-auto text-xs sm:text-sm">
+            <MessageSquare className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span className="hidden sm:inline">AI Chat</span>
+            <span className="sm:hidden">Chat</span>
           </TabsTrigger>
         </TabsList>
 

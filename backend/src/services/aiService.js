@@ -16,23 +16,29 @@ class AIService {
           'X-Title': 'PDFPet'
         }
       });
-      this.model = process.env.AI_MODEL || 'openai/gpt-3.5-turbo';
-      this.embeddingModel = process.env.EMBEDDING_MODEL || 'openai/text-embedding-ada-002';
+      // Use GLM-4.5 Air free model through OpenRouter
+      this.model = process.env.AI_MODEL || 'zhipuai/glm-4-air';
+      this.embeddingModel = process.env.EMBEDDING_MODEL || 'text-embedding-3-small';
+      this.isUsingOpenRouter = true;
+      this.isUsingOpenAI = false;
+      this.maxTokens = 8000; // GLM-4 Air supports up to 8K tokens
     } else if (useOpenAI) {
       this.openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
       });
       this.model = process.env.AI_MODEL || 'gpt-3.5-turbo';
       this.embeddingModel = process.env.EMBEDDING_MODEL || 'text-embedding-ada-002';
+      this.isUsingOpenRouter = false;
+      this.isUsingOpenAI = true;
+      this.maxTokens = 4000;
     } else {
       this.openai = null;
       this.model = null;
       this.embeddingModel = null;
+      this.isUsingOpenRouter = false;
+      this.isUsingOpenAI = false;
+      this.maxTokens = 4000;
     }
-    
-    this.maxTokens = 4000;
-    this.isUsingOpenRouter = useOpenRouter;
-    this.isUsingOpenAI = useOpenAI;
   }
 
   // Check if AI features are enabled

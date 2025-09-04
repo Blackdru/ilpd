@@ -6,14 +6,14 @@
 
 @layer base {
   :root {
-    /* Modern Color Palette */
+    /* Revolutionary Color System - Premium & Stunning */
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 222 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 221 83% 53%;
+    --popover-foreground: 222 84% 4.9%;
+    --primary: 270 91% 65%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96%;
     --secondary-foreground: 222.2 84% 4.9%;
@@ -25,23 +25,38 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
-    --radius: 0.75rem;
+    --ring: 270 91% 65%;
+    --radius: 1rem;
     
-    /* Custom Modern Variables */
+    /* Next-Gen Gradient System */
     --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --gradient-warning: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    --gradient-danger: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    --gradient-dark: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    --gradient-warning: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    --gradient-danger: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    --gradient-info: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    --gradient-purple: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-pink: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    --gradient-teal: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    --gradient-orange: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+    --gradient-emerald: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    --gradient-indigo: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-cosmic: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+    --gradient-sunset: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    --gradient-ocean: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-forest: linear-gradient(135deg, #134e5e 0%, #71b280 100%);
+    --gradient-fire: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    --gradient-ice: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
     
-    /* Glass Morphism */
-    --glass-bg: rgba(255, 255, 255, 0.25);
-    --glass-border: rgba(255, 255, 255, 0.18);
+    /* Premium Glass Morphism */
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.15);
     --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    --glass-backdrop: blur(20px);
+    --glass-dark-bg: rgba(0, 0, 0, 0.08);
+    --glass-dark-border: rgba(255, 255, 255, 0.1);
     
-    /* Shadows */
+    /* Advanced Shadow System */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -49,6 +64,26 @@
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
     --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+    --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.4);
+    --shadow-glow-purple: 0 0 30px rgba(102, 126, 234, 0.5);
+    --shadow-glow-pink: 0 0 30px rgba(236, 72, 153, 0.5);
+    --shadow-glow-teal: 0 0 30px rgba(20, 184, 166, 0.5);
+    --shadow-glow-orange: 0 0 30px rgba(249, 115, 22, 0.5);
+    --shadow-colored: 0 10px 25px -3px rgba(102, 126, 234, 0.15), 0 4px 6px -2px rgba(102, 126, 234, 0.1);
+    --shadow-premium: 0 32px 64px -12px rgba(0, 0, 0, 0.25);
+    --shadow-floating: 0 20px 40px -4px rgba(0, 0, 0, 0.1), 0 8px 16px -4px rgba(0, 0, 0, 0.04);
+    
+    /* Premium Color Palette */
+    --color-cosmic-purple: #667eea;
+    --color-cosmic-blue: #764ba2;
+    --color-neon-pink: #f093fb;
+    --color-sunset-orange: #f5576c;
+    --color-ocean-blue: #4facfe;
+    --color-emerald-green: #11998e;
+    --color-golden-yellow: #fee140;
+    --color-royal-purple: #667eea;
+    --color-electric-blue: #00f2fe;
+    --color-hot-pink: #fa709a;
   }
 
   .dark {
@@ -97,23 +132,65 @@
 }
 
 @layer components {
-  /* Modern Glass Card */
+  /* Premium Glass Card System */
   .glass-card {
     background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
     border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    @apply rounded-2xl;
+    box-shadow: var(--shadow-floating);
+    @apply rounded-3xl;
   }
   
-  /* Gradient Backgrounds */
+  .glass-card-premium {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: var(--shadow-premium);
+    @apply rounded-3xl;
+  }
+  
+  .glass-card-dark {
+    background: var(--glass-dark-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-dark-border);
+    box-shadow: var(--shadow-floating);
+    @apply rounded-3xl;
+  }
+  
+  /* Revolutionary Gradient System */
   .gradient-primary {
     background: var(--gradient-primary);
   }
   
-  .gradient-secondary {
-    background: var(--gradient-secondary);
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  
+  .gradient-cosmic {
+    background: var(--gradient-cosmic);
+  }
+  
+  .gradient-sunset {
+    background: var(--gradient-sunset);
+  }
+  
+  .gradient-ocean {
+    background: var(--gradient-ocean);
+  }
+  
+  .gradient-forest {
+    background: var(--gradient-forest);
+  }
+  
+  .gradient-fire {
+    background: var(--gradient-fire);
+  }
+  
+  .gradient-ice {
+    background: var(--gradient-ice);
   }
   
   .gradient-success {
@@ -126,6 +203,34 @@
   
   .gradient-danger {
     background: var(--gradient-danger);
+  }
+  
+  .gradient-info {
+    background: var(--gradient-info);
+  }
+  
+  .gradient-purple {
+    background: var(--gradient-purple);
+  }
+  
+  .gradient-pink {
+    background: var(--gradient-pink);
+  }
+  
+  .gradient-teal {
+    background: var(--gradient-teal);
+  }
+  
+  .gradient-orange {
+    background: var(--gradient-orange);
+  }
+  
+  .gradient-emerald {
+    background: var(--gradient-emerald);
+  }
+  
+  .gradient-indigo {
+    background: var(--gradient-indigo);
   }
   
   /* Modern Button Styles */

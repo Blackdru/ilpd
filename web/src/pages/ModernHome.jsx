@@ -128,46 +128,53 @@ const ModernHome = () => {
       name: 'Free',
       price: '$0',
       period: 'forever',
-      description: 'Perfect for personal use',
+      description: 'Perfect for getting started',
       features: [
-        'Basic PDF operations',
         '10 files per month',
-        'Standard compression',
-        'Email support'
+        '10MB max file size',
+        '100MB storage',
+        '5 OCR pages/month',
+        '10 AI chat messages/month',
+        'Basic PDF tools'
       ],
-      gradient: 'from-gray-500 to-gray-600',
+      gradient: 'from-slate-500 to-gray-600',
       popular: false
     },
     {
       name: 'Pro',
-      price: '$9',
+      price: '$1',
       period: 'per month',
-      description: 'For professionals and teams',
+      description: 'Best value for professionals',
       features: [
-        'All PDF operations',
-        'Unlimited files',
-        'AI-powered features',
-        'Batch processing',
-        'Priority support',
-        'Advanced compression'
+        '500 files per month',
+        '50MB max file size',
+        '2GB storage',
+        '200 OCR pages/month',
+        '1,000 AI chat messages/month',
+        'Advanced OCR features',
+        'API access',
+        'Batch processing (20 files)'
       ],
-      gradient: 'from-blue-500 to-purple-600',
+      gradient: 'from-emerald-500 to-teal-600',
       popular: true
     },
     {
-      name: 'Enterprise',
-      price: '$29',
+      name: 'Premium',
+      price: '$10',
       period: 'per month',
-      description: 'For large organizations',
+      description: 'For power users and teams',
       features: [
-        'Everything in Pro',
-        'API access',
-        'Custom integrations',
-        'Dedicated support',
-        'Advanced analytics',
-        'White-label options'
+        'Unlimited files',
+        '200MB max file size',
+        '20GB storage',
+        'Unlimited OCR processing',
+        'Unlimited AI chat',
+        'Advanced AI models (GPT-4)',
+        'Priority processing',
+        'Priority support',
+        'Advanced analytics'
       ],
-      gradient: 'from-purple-600 to-pink-600',
+      gradient: 'from-violet-500 to-purple-600',
       popular: false
     }
   ]

@@ -9,13 +9,13 @@ const router = express.Router();
 // OCR - Extract text from PDF
 router.post('/ocr', authenticateUser, async (req, res) => {
   try {
-    const { fileId } = req.body;
+    const { fileId, language = 'eng', enhanceImage = true } = req.body;
 
     if (!fileId) {
       return res.status(400).json({ error: 'File ID is required' });
     }
 
-    // Get file metadata
+    // Get file metadata from Supabase
     const { data: file, error: fileError } = await supabase
       .from('files')
       .select('*')
@@ -27,29 +27,96 @@ router.post('/ocr', authenticateUser, async (req, res) => {
       return res.status(404).json({ error: 'File not found' });
     }
 
-    // Simulate OCR processing
-    const mockText = `This is extracted text from ${file.filename}. 
+    // Check if OCR already exists
+    if (file.has_ocr && file.extracted_text && !req.body.forceReprocess) {
+      return res.json({
+        message: 'OCR already completed for this file',
+        result: {
+          text: file.extracted_text,
+          confidence: 0.95,
+          language: language,
+          pageCount: 1,
+          cached: true
+        }
+      });
+    }
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+    // Download file from Supabase Storage
+    const { supabaseAdmin } = require('../config/supabase');
+    const { data: fileBuffer, error: downloadError } = await supabaseAdmin.storage
+      .from('files')
+      .download(file.path);
 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`;
+    if (downloadError) {
+      return res.status(400).json({ error: 'Failed to download file: ' + downloadError.message });
+    }
+
+    // Convert blob to buffer
+    const buffer = Buffer.from(await fileBuffer.arrayBuffer());
+
+    let ocrResult;
+
+    // Perform OCR based on file type
+    if (file.type === 'application/pdf') {
+      ocrResult = await ocrService.extractTextFromPDF(buffer, {
+        language,
+        enhanceImage,
+        maxPages: 20 // Limit for performance
+      });
+    } else if (file.type.startsWith('image/')) {
+      ocrResult = await ocrService.extractTextFromImage(buffer, {
+        language,
+        enhanceImage
+      });
+    } else {
+      return res.status(400).json({ error: 'File type not supported for OCR' });
+    }
+
+    // Save OCR results to database
+    const { data: ocrRecord, error: ocrError } = await supabaseAdmin
+      .from('ocr_results')
+      .upsert([
+        {
+          user_id: req.user.id,
+          file_id: fileId,
+          extracted_text: ocrResult.text,
+          confidence: ocrResult.confidence,
+          language: ocrResult.language,
+          page_count: ocrResult.pageCount,
+          pages_data: ocrResult.pages
+        }
+      ])
+      .select()
+      .single();
 
     // Update file record
-    await supabase
+    await supabaseAdmin
       .from('files')
       .update({
-        extracted_text: mockText,
+        extracted_text: ocrResult.text,
         has_ocr: true
       })
       .eq('id', fileId);
 
+    // Log operation
+    await supabaseAdmin
+      .from('history')
+      .insert([
+        {
+          user_id: req.user.id,
+          file_id: fileId,
+          action: 'ocr'
+        }
+      ]);
+
     res.json({
       message: 'OCR completed successfully',
       result: {
-        text: mockText,
-        confidence: 0.95,
-        language: 'eng',
-        pageCount: 1
+        text: ocrResult.text,
+        confidence: ocrResult.confidence,
+        language: ocrResult.language,
+        pageCount: ocrResult.pageCount,
+        pages: ocrResult.pages
       }
     });
 
@@ -201,26 +268,119 @@ router.post('/chat-pdf', authenticateUser, async (req, res) => {
       return res.status(400).json({ error: 'File ID and message are required' });
     }
 
-    // Get file info
-    const { data: file } = await supabase
+    const { supabaseAdmin } = require('../config/supabase');
+
+    // Get file with extracted text
+    const { data: file, error: fileError } = await supabaseAdmin
       .from('files')
-      .select('filename')
+      .select('*')
       .eq('id', fileId)
       .eq('user_id', req.user.id)
       .single();
 
-    // Generate mock AI response
-    const responses = [
-      `Based on the document "${file?.filename}", I can help you with that. ${message.includes('what') ? 'This document contains information about various topics.' : 'That\'s an interesting question about the document content.'} Would you like me to elaborate on any specific section?`,
-      `I've analyzed the content of "${file?.filename}" regarding your question: "${message}". The document discusses several key points that are relevant to your inquiry. What specific aspect would you like to explore further?`,
-      `From my understanding of "${file?.filename}", I can provide insights about ${message.toLowerCase()}. The document contains relevant information that addresses your question. Is there a particular section you'd like me to focus on?`
-    ];
+    if (fileError || !file) {
+      return res.status(404).json({ error: 'File not found' });
+    }
 
-    const response = responses[Math.floor(Math.random() * responses.length)];
+    if (!file.extracted_text) {
+      return res.status(400).json({ 
+        error: 'File has no extracted text. Please run OCR first.',
+        needsOCR: true
+      });
+    }
+
+    let currentSessionId = sessionId;
+
+    // Create or get chat session
+    if (!currentSessionId) {
+      const { data: newSession, error: sessionError } = await supabaseAdmin
+        .from('chat_sessions')
+        .insert([
+          {
+            user_id: req.user.id,
+            file_id: fileId,
+            title: `Chat with ${file.filename}`,
+            created_at: new Date().toISOString()
+          }
+        ])
+        .select()
+        .single();
+
+      if (sessionError) {
+        return res.status(400).json({ error: 'Failed to create chat session' });
+      }
+
+      currentSessionId = newSession.id;
+    }
+
+    // Get conversation history
+    const { data: conversationHistory } = await supabaseAdmin
+      .from('chat_messages')
+      .select('role, content')
+      .eq('session_id', currentSessionId)
+      .order('created_at', { ascending: true })
+      .limit(20);
+
+    // Save user message
+    await supabaseAdmin
+      .from('chat_messages')
+      .insert([
+        {
+          session_id: currentSessionId,
+          role: 'user',
+          content: message,
+          created_at: new Date().toISOString()
+        }
+      ]);
+
+    let aiResponse;
+
+    // Generate AI response using the document content
+    if (aiService.isEnabled()) {
+      try {
+        // Use the full document text as context for now
+        // In a production system, you'd use embeddings and vector search
+        const relevantChunks = [{
+          chunk_text: file.extracted_text.substring(0, 3000) // Limit context size
+        }];
+
+        aiResponse = await aiService.chatWithPDF(
+          message,
+          relevantChunks,
+          conversationHistory || []
+        );
+      } catch (aiError) {
+        console.error('AI service error:', aiError);
+        // Fallback to rule-based response
+        aiResponse = generateFallbackResponse(message, file.filename);
+      }
+    } else {
+      // Fallback response when AI is not available
+      aiResponse = generateFallbackResponse(message, file.filename);
+    }
+
+    // Save AI response
+    await supabaseAdmin
+      .from('chat_messages')
+      .insert([
+        {
+          session_id: currentSessionId,
+          role: 'assistant',
+          content: aiResponse,
+          created_at: new Date().toISOString()
+        }
+      ]);
+
+    // Update session timestamp
+    await supabaseAdmin
+      .from('chat_sessions')
+      .update({ updated_at: new Date().toISOString() })
+      .eq('id', currentSessionId);
 
     res.json({
-      sessionId: sessionId || 'mock-session-' + Date.now(),
-      response: response
+      sessionId: currentSessionId,
+      response: aiResponse,
+      message: 'Chat response generated successfully'
     });
 
   } catch (error) {
@@ -228,6 +388,21 @@ router.post('/chat-pdf', authenticateUser, async (req, res) => {
     res.status(500).json({ error: error.message || 'Chat failed' });
   }
 });
+
+// Helper function for fallback responses
+function generateFallbackResponse(message, filename) {
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes('what') || lowerMessage.includes('tell me')) {
+    return `I can help you understand the content of "${filename}". Based on the document, I can provide information about the topics discussed. What specific aspect would you like to know more about?`;
+  } else if (lowerMessage.includes('summary') || lowerMessage.includes('summarize')) {
+    return `I can provide a summary of "${filename}". The document contains various sections with important information. Would you like me to focus on a particular section or provide an overall summary?`;
+  } else if (lowerMessage.includes('how') || lowerMessage.includes('why')) {
+    return `That's an interesting question about "${filename}". Based on the document content, I can help explain the concepts and processes mentioned. Could you be more specific about what you'd like to understand?`;
+  } else {
+    return `I understand you're asking about "${filename}". I can help you find information within this document. The document discusses several topics that might be relevant to your question. What specific information are you looking for?`;
+  }
+}
 
 // Get chat sessions for a file
 router.get('/chat-sessions/:fileId', authenticateUser, async (req, res) => {

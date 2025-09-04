@@ -73,43 +73,43 @@ const ModernNavbar = () => {
       <motion.nav 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled 
-            ? 'bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-lg' 
+            ? 'glass-card-premium border-b border-white/20 shadow-floating' 
             : 'bg-transparent'
         }`}
       >
         <div className="container mx-auto px-4">
-          <div className="flex h-16 items-center justify-between">
+          <div className="flex h-20 items-center justify-between">
             {/* Logo */}
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Link to="/" className="flex items-center space-x-3 group">
+              <Link to="/" className="flex items-center space-x-4 group">
                 <div className="relative">
                   <motion.div 
-                    className="absolute inset-0 bg-gradient-primary rounded-2xl blur-lg opacity-30 group-hover:opacity-60 transition-opacity duration-300"
+                    className="absolute inset-0 gradient-cosmic rounded-3xl blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"
                     animate={{ 
-                      scale: [1, 1.1, 1],
-                      rotate: [0, 5, -5, 0]
+                      scale: [1, 1.2, 1],
+                      rotate: [0, 10, -10, 0]
                     }}
                     transition={{ 
-                      duration: 4,
+                      duration: 6,
                       repeat: Infinity,
                       ease: "easeInOut"
                     }}
                   />
-                  <div className="relative bg-gradient-primary p-3 rounded-2xl shadow-glow">
-                    <FileText className="h-6 w-6 text-white" />
+                  <div className="relative gradient-cosmic p-4 rounded-3xl shadow-glow-purple">
+                    <FileText className="h-7 w-7 text-white" />
                   </div>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xl font-bold gradient-text font-inter">
+                  <span className="text-2xl font-bold gradient-text font-inter tracking-tight">
                     PDFPet
                   </span>
-                  <span className="text-xs text-gray-500 -mt-1 font-medium">
-                    Professional PDF Tools
+                  <span className="text-xs text-gray-500 -mt-1 font-medium tracking-wide">
+                    AI-Powered PDF Tools
                   </span>
                 </div>
               </Link>

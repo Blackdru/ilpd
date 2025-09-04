@@ -31,30 +31,60 @@ const Upgrade = () => {
     return subscription?.plan || 'free'
   }
 
-  // Plan comparison data
+  // Updated plan comparison data with new pricing structure
   const comparisonFeatures = [
+    {
+      feature: 'Monthly Price',
+      free: 'Free',
+      pro: '$1/month',
+      premium: '$10/month'
+    },
     {
       feature: 'Files per month',
       free: '10',
-      pro: '1,000',
+      pro: '500',
       premium: 'Unlimited'
     },
     {
       feature: 'Max file size',
       free: '10 MB',
-      pro: '100 MB',
-      premium: '500 MB'
+      pro: '50 MB',
+      premium: '200 MB'
     },
     {
       feature: 'Storage',
       free: '100 MB',
-      pro: '5 GB',
-      premium: '50 GB'
+      pro: '2 GB',
+      premium: '20 GB'
     },
     {
-      feature: 'AI Operations',
-      free: '5',
-      pro: '500',
+      feature: 'OCR Processing',
+      free: '5 pages/month',
+      pro: '200 pages/month',
+      premium: 'Unlimited'
+    },
+    {
+      feature: 'AI Chat Messages',
+      free: '10 messages/month',
+      pro: '1,000 messages/month',
+      premium: 'Unlimited'
+    },
+    {
+      feature: 'Advanced OCR Features',
+      free: false,
+      pro: true,
+      premium: true
+    },
+    {
+      feature: 'Advanced AI Models',
+      free: false,
+      pro: false,
+      premium: true
+    },
+    {
+      feature: 'Batch Processing',
+      free: 'Single files',
+      pro: 'Up to 20 files',
       premium: 'Unlimited'
     },
     {
@@ -64,22 +94,22 @@ const Upgrade = () => {
       premium: true
     },
     {
-      feature: 'Batch Processing',
-      free: 'Single files',
-      pro: 'Up to 50 files',
-      premium: 'Unlimited'
+      feature: 'Custom Watermarks',
+      free: false,
+      pro: true,
+      premium: true
     },
     {
-      feature: 'OCR Processing',
-      free: '5 pages',
-      pro: '100 pages',
-      premium: 'Unlimited'
+      feature: 'Advanced Compression',
+      free: false,
+      pro: true,
+      premium: true
     },
     {
-      feature: 'PDF Chat',
-      free: '10 messages',
-      pro: '500 messages',
-      premium: 'Unlimited'
+      feature: 'Priority Processing',
+      free: false,
+      pro: false,
+      premium: true
     },
     {
       feature: 'Priority Support',
